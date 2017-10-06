@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -70,10 +71,12 @@ public class MainActivity extends Activity implements OnImageDirSelected
 	private int mScreenHeight;
 
 	private ListImageDirPopupWindow mListImageDirPopupWindow;
+	private boolean isDestory;
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		Log.e("TAG", ">>onCreate()>>");
 		setContentView(R.layout.activity_main);
 
 		DisplayMetrics outMetrics = new DisplayMetrics();
@@ -163,6 +166,7 @@ public class MainActivity extends Activity implements OnImageDirSelected
 	 */
 	private void getImages()
 	{
+		Log.e("TAG", ">>getImages()>>");
 		if (!Environment.getExternalStorageState().equals(
 				Environment.MEDIA_MOUNTED))
 		{
@@ -171,6 +175,7 @@ public class MainActivity extends Activity implements OnImageDirSelected
 		}
 		// 显示进度条
 		mProgressDialog = ProgressDialog.show(this, null, "正在加载...");
+		mProgressDialog.setCanceledOnTouchOutside(true);
 
 		new Thread(new Runnable()
 		{
@@ -194,20 +199,24 @@ public class MainActivity extends Activity implements OnImageDirSelected
 						MediaStore.Images.Media.DATE_MODIFIED);
 
 				Log.e("TAG", mCursor.getCount() + "");
-				while (mCursor.moveToNext())
-				{
+				while (mCursor.moveToNext()){
+					SystemClock.sleep(10);
+					Log.e("TAG", ">>getImages()>>Thread>>run>>isDestory:" + isDestory);
+					if (isDestory){
+						break;
+					}
 					// 获取图片的路径
 					String path = mCursor.getString(mCursor
 							.getColumnIndex(MediaStore.Images.Media.DATA));
 
 					Log.e("TAG", path);
 					// 拿到第一张图片的路径
-					if (firstImage == null)
+					if (firstImage == null){
 						firstImage = path;
+					}
 					// 获取该图片的父路径名
 					File parentFile = new File(path).getParentFile();
-					if (parentFile == null)
-					{
+					if (parentFile == null){
 						continue;
 					}
 					String dirPath = parentFile.getAbsolutePath();
@@ -222,11 +231,9 @@ public class MainActivity extends Activity implements OnImageDirSelected
 					 * /root/path01/y.png
 					 * ...
 					 */
-					if (mDirPaths.contains(dirPath))
-					{
+					if (mDirPaths.contains(dirPath)){
 						continue;
-					} else
-					{
+					} else {
 						mDirPaths.add(dirPath);
 						// 初始化imageFloder
 						imageFloder = new ImageFloder();
@@ -250,18 +257,15 @@ public class MainActivity extends Activity implements OnImageDirSelected
 						}
 					});
 					if(list != null){
-						
 						picSize = list.length;
+					}else {
+						continue;//如果为null直接返回，如果在扫描处理过程中，删除了该文件夹下面的所有图片时的情况
 					}
-                    // TODO: 2017/10/6 else 语句待处理
-
                     totalCount += picSize;
-
 					imageFloder.setCount(picSize);
 					mImageFloders.add(imageFloder);
 
-					if (picSize > mPicsSize)
-					{
+					if (picSize > mPicsSize){
 						mPicsSize = picSize;
 						mImgDir = parentFile;
 					}
@@ -346,4 +350,10 @@ public class MainActivity extends Activity implements OnImageDirSelected
 
 	}
 
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Log.e("TAG", ">>onDestroy()>>");
+		isDestory = true;
+	}
 }
