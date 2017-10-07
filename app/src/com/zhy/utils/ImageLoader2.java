@@ -180,7 +180,7 @@ public class ImageLoader2
 		};
 
 		mThreadPool = Executors.newFixedThreadPool(threadCount);
-		mPoolSemaphore = new Semaphore(2);//TODO 待分析
+		mPoolSemaphore = new Semaphore(2);
 		mTasks = new LinkedList<Runnable>();
 		mType = type == null ? Type.LIFO : type;
 
