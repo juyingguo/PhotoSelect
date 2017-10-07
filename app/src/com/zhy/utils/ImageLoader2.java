@@ -61,7 +61,7 @@ public class ImageLoader2
 	/**
 	 * 引入一个值为1的信号量，防止mPoolThreadHander未初始化完成;作用同步线程
 	 */
-	private volatile Semaphore mSemaphore = new Semaphore(3);
+	private volatile Semaphore mSemaphore = new Semaphore(0);
 	/**
 	 * 引入一个值为构造时传递的值的信号量，由于线程池内部也有一个阻塞线程，防止加入任务的速度过快，使LIFO效果不明显
 	 */
@@ -150,8 +150,12 @@ public class ImageLoader2
 			public void handleMessage(Message msg) {
 				super.handleMessage(msg);
 				Log.d(TAG ,TAG + ">>>init()>>mPoolThreadHander>>handleMessage>>:");
-				mThreadPool.execute(getTask());
-//				SystemClock.sleep(1 * 1000);
+
+				Runnable task = getTask();
+				if (task != null){
+					mThreadPool.execute(task);
+				}
+				//SystemClock.sleep(3 * 1000);
 				try
 				{
 					Log.d(TAG ,TAG + ">>>init()>>mPoolThreadHander>>mPoolSemaphore.acquire():");
@@ -163,10 +167,9 @@ public class ImageLoader2
 			}
 		};
 
-
 		// 获取应用程序最大可用内存
 		int maxMemory = (int) Runtime.getRuntime().maxMemory();
-		int cacheSize = maxMemory / 8;
+		int cacheSize = maxMemory / 8; // TODO: 2017/10/7 8-->>4
 		mLruCache = new LruCache<String, Bitmap>(cacheSize)
 		{
 			@Override
@@ -177,7 +180,7 @@ public class ImageLoader2
 		};
 
 		mThreadPool = Executors.newFixedThreadPool(threadCount);
-		mPoolSemaphore = new Semaphore(1);//TODO 待分析
+		mPoolSemaphore = new Semaphore(2);//TODO 待分析
 		mTasks = new LinkedList<Runnable>();
 		mType = type == null ? Type.LIFO : type;
 
@@ -236,7 +239,7 @@ public class ImageLoader2
 				@Override
 				public void run()
 				{
-
+					Log.d(TAG, "loadImage>>run>>开始执行.....");
 					ImageSize imageSize = getImageViewWidth(imageView);
 
 					int reqWidth = imageSize.width;
@@ -254,10 +257,8 @@ public class ImageLoader2
 					// Log.e("TAG", "mHandler.sendMessage(message);");
 					mHandler.sendMessage(message);
 
-					//模拟耗时操作
-//					SystemClock.sleep(6 * 1000);
-					 Log.d(TAG, "loadImage>>run>>执行完成准备释放信号量mPoolSemaphore.release()");
-					mPoolSemaphore.release();//任务执行完成释放一个信号量
+					Log.d(TAG, "loadImage>>run>>执行完成准备释放信号量mPoolSemaphore.release()");
+					mPoolSemaphore.release();//任务执行完成释放一个信号量 // TODO: 2017/10/7
 				}
 			});
 		}

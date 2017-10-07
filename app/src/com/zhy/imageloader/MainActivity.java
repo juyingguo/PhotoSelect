@@ -72,11 +72,12 @@ public class MainActivity extends Activity implements OnImageDirSelected
 
 	private ListImageDirPopupWindow mListImageDirPopupWindow;
 	private boolean isDestory;
+	private String TAG = MainActivity.class.getSimpleName();
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		Log.e("TAG", ">>onCreate()>>");
+		Log.e(TAG, ">>onCreate()>>");
 		setContentView(R.layout.activity_main);
 
 		DisplayMetrics outMetrics = new DisplayMetrics();
@@ -200,7 +201,7 @@ public class MainActivity extends Activity implements OnImageDirSelected
 
 				Log.e("TAG", mCursor.getCount() + "");
 				while (mCursor.moveToNext()){
-					SystemClock.sleep(10);
+					//SystemClock.sleep(10);
 					Log.e("TAG", ">>getImages()>>Thread>>run>>isDestory:" + isDestory);
 					if (isDestory){
 						break;
@@ -353,7 +354,7 @@ public class MainActivity extends Activity implements OnImageDirSelected
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Log.e("TAG", ">>onDestroy()>>");
+		Log.e(TAG, ">>onDestroy()>>");
 		isDestory = true;
 	}
 }
