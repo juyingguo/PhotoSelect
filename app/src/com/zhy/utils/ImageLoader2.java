@@ -61,7 +61,7 @@ public class ImageLoader2
 	/**
 	 * 引入一个值为1的信号量，防止mPoolThreadHander未初始化完成;作用同步线程
 	 */
-	private volatile Semaphore mSemaphore = new Semaphore(0);
+	//private volatile Semaphore mSemaphore = new Semaphore(0); // TODO: 2017/10/8 不再使用
 	/**
 	 * 引入一个值为构造时传递的值的信号量，由于线程池内部也有一个阻塞线程，防止加入任务的速度过快，使LIFO效果不明显
 	 */
@@ -149,21 +149,21 @@ public class ImageLoader2
 			@Override
 			public void handleMessage(Message msg) {
 				super.handleMessage(msg);
-				Log.d(TAG ,TAG + ">>>init()>>mPoolThreadHander>>handleMessage>>:");
+				Log.d(TAG ,TAG + ">>>init()>>mPoolThreadHander>>handleMessage>>thread-name:" + Thread.currentThread().getName());
 
 				Runnable task = getTask();
 				if (task != null){
 					mThreadPool.execute(task);
 				}
 				//SystemClock.sleep(3 * 1000);
-				try
+				/*try
 				{
 					Log.d(TAG ,TAG + ">>>init()>>mPoolThreadHander>>mPoolSemaphore.acquire():");
 					mPoolSemaphore.acquire();
 				} catch (InterruptedException e)
 				{
 					e.printStackTrace();
-				}
+				}*/
 			}
 		};
 
@@ -180,7 +180,7 @@ public class ImageLoader2
 		};
 
 		mThreadPool = Executors.newFixedThreadPool(threadCount);
-		mPoolSemaphore = new Semaphore(2);
+		mPoolSemaphore = new Semaphore(3);
 		mTasks = new LinkedList<Runnable>();
 		mType = type == null ? Type.LIFO : type;
 
@@ -240,6 +240,14 @@ public class ImageLoader2
 				public void run()
 				{
 					Log.d(TAG, "loadImage>>run>>开始执行.....");
+					try
+					{
+						Log.d(TAG, "loadImage>>run>>mPoolSemaphore.acquire():");
+						mPoolSemaphore.acquire();
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
 					ImageSize imageSize = getImageViewWidth(imageView);
 
 					int reqWidth = imageSize.width;
@@ -258,6 +266,7 @@ public class ImageLoader2
 					mHandler.sendMessage(message);
 
 					Log.d(TAG, "loadImage>>run>>执行完成准备释放信号量mPoolSemaphore.release()");
+					Log.d(TAG, "loadImage>>run>>thread-name:" + Thread.currentThread().getName());
 					mPoolSemaphore.release();//任务执行完成释放一个信号量 // TODO: 2017/10/7
 				}
 			});
@@ -272,7 +281,7 @@ public class ImageLoader2
 	 */
 	private synchronized void addTask(Runnable runnable)
 	{
-		try
+		/*try
 		{
 			// 请求信号量，防止mPoolThreadHander为null
 			if (mPoolThreadHander == null){
@@ -280,7 +289,7 @@ public class ImageLoader2
 			}
 		} catch (InterruptedException e)
 		{
-		}
+		}*/
 		mTasks.add(runnable);
 		
 		mPoolThreadHander.sendEmptyMessage(0x110);
