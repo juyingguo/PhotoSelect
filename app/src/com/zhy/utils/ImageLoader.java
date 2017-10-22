@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.v4.util.LruCache;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -113,7 +114,9 @@ public class ImageLoader
 			public void run()
 			{
 				Looper.prepare();
-				Log.d(TAG ,TAG + ">>>init()>>>>>Looper.prepare():");
+				Log.d(TAG ,TAG + ">>>init()>>>>>Looper.prepare():"
+						+ ",Threadname:" + Thread.currentThread().getName());
+				SystemClock.sleep(5*1000);
 				mPoolThreadHander = new Handler()
 				{
 					@Override
@@ -236,6 +239,8 @@ public class ImageLoader
 		try
 		{
 			// 请求信号量，防止mPoolThreadHander为null
+			Log.d(TAG ,TAG + ">>>addTask()>>mPoolThreadHander:" + mPoolThreadHander
+					+ ",Threadname:" + Thread.currentThread().getName());
 			if (mPoolThreadHander == null){
 				mSemaphore.acquire();
 			}
@@ -243,7 +248,8 @@ public class ImageLoader
 		{
 		}
 		mTasks.add(runnable);
-		
+		Log.d(TAG ,TAG + ">>>addTask()>>mPoolThreadHander>>mPoolThreadHander.sendEmptyMessage(0x110):" + mPoolThreadHander
+				+ ",Threadname:" + Thread.currentThread().getName() );
 		mPoolThreadHander.sendEmptyMessage(0x110);
 	}
 

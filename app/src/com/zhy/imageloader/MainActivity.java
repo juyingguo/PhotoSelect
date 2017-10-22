@@ -260,7 +260,7 @@ public class MainActivity extends Activity implements OnImageDirSelected
 					if(list != null){
 						picSize = list.length;
 					}else {
-						continue;//如果为null直接返回，如果在扫描处理过程中，删除了该文件夹下面的所有图片时的情况
+						continue;//如果为null直接继续下一次循环，如果在扫描处理过程中，此时的情况如：删除了该文件夹下面的所有图片时的情况
 					}
                     totalCount += picSize;
 					imageFloder.setCount(picSize);
